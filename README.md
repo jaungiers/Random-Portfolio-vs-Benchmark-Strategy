@@ -1,0 +1,2 @@
+# Random-Portfolio-vs-Benchmark-Strategy
+Building on the popular work of the WallStreet Journal with the monkey darts stock picking experiment, this Python project models the performance of randomly generated portfolios and plots it against a benchmark. The aim is to visualise if randomly picked portfolios with the same number of constituent stocks as the benchmark can outperform the benchmark itself.
