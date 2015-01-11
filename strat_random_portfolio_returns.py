@@ -3,7 +3,6 @@ import csv
 import urllib2
 import datetime
 import numpy as np
-from time import sleep
 from random import randint
 import matplotlib.pyplot as plt
 
@@ -11,6 +10,7 @@ class RandomPortfolioReturnStrategy(object):
 
 	def __init__(self, lim, bmark_ticker, constituents, n_rand_port):
 		self.lim = lim
+		self.start_date = self.calculate_start_date(lim)
 		self.bmark_ticker = bmark_ticker
 		self.constituents = constituents
 		self.n_rand_port = n_rand_port
@@ -23,20 +23,34 @@ class RandomPortfolioReturnStrategy(object):
 			stocklist = list(reader)
 		return stocklist
 
+	def calculate_start_date(self, data_point_days):
+		weekends = (data_point_days / 7) * 2
+		actual_days_delta = data_point_days + (weekends * 2) #Add a buffer of +1 day for every weekend to account for any non-trading days
+		start_date = datetime.date.today() - datetime.timedelta(actual_days_delta)
+		return start_date
+
 	def get_rand_stock(self):
-		rand_index = rand_index = randint(0, (len(self.stocklist)-1))
+		rand_index = randint(0, (len(self.stocklist)-1))
 		return self.stocklist[rand_index]
 
 	def fetch_prices(self, ticker):
 		priceApi = 'http://ichart.finance.yahoo.com/table.csv?s='
-		params = '&a=00&b=01&c=2012'
+		params = '&a=' + str(self.start_date.month-1) + '&b=' + str(self.start_date.day) + '&c=' + str(self.start_date.year)
 		try:
 			data = urllib2.urlopen(priceApi + ticker + params).read()
 			data = data.replace('\r', '').split('\n')[1:][::-1]
 		except:
 			return self.fetch_prices(self.get_rand_stock()[0])
+
 		if len(data) < self.lim:
-			return self.fetch_prices(self.get_rand_stock()[0])
+			while len(data) < self.lim:
+				next_rand_ticker = self.get_rand_stock()[0]
+				try:
+					data = urllib2.urlopen(priceApi + next_rand_ticker + params).read()
+					data = data.replace('\r', '').split('\n')[1:][::-1]
+				except:
+					return self.fetch_prices(self.get_rand_stock()[0])
+
 		prices = []
 		for d in data:
 			if d:
@@ -70,10 +84,11 @@ class RandomPortfolioReturnStrategy(object):
 	def plot_results(self, benchmark, rand_portfolios):
 		print "\n>> Plotting results..."
 		fig = plt.figure()
-		fig.canvas.set_window_title('Performance of Benchmark vs Random Portfolio')
-		plt.ylabel('% change')
-		plt.xlabel('Days')
-		plt.plot(benchmark)
+		fig.canvas.set_window_title('Performance of ' + str(self.n_rand_port) + ' Random Portfolios vs ' + self.bmark_ticker + ' Benchmark')
+		plt.ylabel('% Change')
+		now = datetime.date.today()
+		plt.xlabel('N Days (ending on ' + str(now.day) + '/' + str(now.month) + '/' + str(now.year) + ')')
+		plt.plot(benchmark, linewidth=3)
 
 		for portfolio in rand_portfolios:
 			plt.plot(portfolio)
@@ -119,18 +134,18 @@ class RandomPortfolioReturnStrategy(object):
 		self.plot_results(benchmark, rand_portfolios)
 
 if __name__ == '__main__':
-	historic_days_limit = 360
+	historic_data_points = 360
 	benchmark_ticker = '^FTSE'
 	benchmark_constituents = 100
 	no_of_rand_portfolios = 20
 
 	print "\n*** Random Portfolio vs Benchmark Returns Strategy ***\n"
 	print ">> Starting with following paramaters:"
-	print "Historical days:\t\t", historic_days_limit
+	print "Historical days:\t\t", historic_data_points
 	print "Benchmark ticker:\t\t", benchmark_ticker
 	print "Constituent count:\t\t", benchmark_constituents
 	print "No. of portfolios to generate:\t", no_of_rand_portfolios
 
-	strat = RandomPortfolioReturnStrategy(historic_days_limit, benchmark_ticker, benchmark_constituents, no_of_rand_portfolios)
+	strat = RandomPortfolioReturnStrategy(historic_data_points, benchmark_ticker, benchmark_constituents, no_of_rand_portfolios)
 	strat.run_simulation()
 	print "\n*** Simulation Finished ***"

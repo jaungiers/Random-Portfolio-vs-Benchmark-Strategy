@@ -16,7 +16,7 @@ To rather than just having a singular comparison at a time, my strategy allows f
 
 * The list of stocks to randomly pick from for a portfolio is contained under _./data/_ and consists of a comma delimited file with the first column containing the Yahoo Finance ticker symbol and the second containing the company name.
 
-* The program uses the [Yahoo Finance](https://finance.yahoo.com/) historical prices download link to fetch CSV files of the historical prices of each stock. As some stocks don't have historical prices, or contain limited history, the program deals with this by calling the _fetch\_prices(ticker)_ function recursively with another random stock until it finds one which matches the requested price history.
+* The program uses the [Yahoo Finance](https://finance.yahoo.com/) historical prices download link to fetch CSV files of the historical prices of each stock. As some stocks don't have historical prices, or contain limited history, the program deals with this by iterating through the provided stocklist and trying the next random stock until it finds one that satisfies the historical requirements.
 
 * The randomly generated portfolios are outputted to a comma delimited file called _rand\_portfolios.csv_ which lists the Yahoo Finance tickers of the constituents of each portfolio.
 
