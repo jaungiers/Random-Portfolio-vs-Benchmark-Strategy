@@ -1,5 +1,6 @@
 import sys
 import csv
+import time
 import urllib2
 import datetime
 import numpy as np
@@ -34,8 +35,9 @@ class RandomPortfolioReturnStrategy(object):
 		return self.stocklist[rand_index]
 
 	def fetch_prices(self, ticker):
+		today = datetime.date.today()
 		priceApi = 'http://ichart.finance.yahoo.com/table.csv?s='
-		params = '&a=' + str(self.start_date.month-1) + '&b=' + str(self.start_date.day) + '&c=' + str(self.start_date.year)
+		params = '&a=' + str(self.start_date.month-1) + '&b=' + str(self.start_date.day) + '&c=' + str(self.start_date.year) + '&d=' + str(today.month-1) + '&e=' + str(today.day) + '&f=' + str(today.year) + '&g=d&ignore=.csv'
 		try:
 			data = urllib2.urlopen(priceApi + ticker + params).read()
 			data = data.replace('\r', '').split('\n')[1:][::-1]
@@ -101,6 +103,7 @@ class RandomPortfolioReturnStrategy(object):
 		plt.show()
 
 	def run_simulation(self):
+		t_start = time.time()
 		print "\n>> Running simulation calculations..."
 		benchmark = self.fetch_prices(self.bmark_ticker)[:self.lim]
 		rand_portfolios = []
@@ -131,7 +134,10 @@ class RandomPortfolioReturnStrategy(object):
 		print "\n\n>> Finished simulating random portfolios!"
 		np.savetxt(self.f_portfolios, portfolio_stock_names, delimiter=',', fmt='%s')
 		print ">> Random portfolios constituents saved in:\n", self.f_portfolios
+		t_end = time.time()
+		t_delta = t_end - t_start
 		self.plot_results(benchmark, rand_portfolios)
+		return t_delta
 
 if __name__ == '__main__':
 	historic_data_points = 360
@@ -147,5 +153,5 @@ if __name__ == '__main__':
 	print "No. of portfolios to generate:\t", no_of_rand_portfolios
 
 	strat = RandomPortfolioReturnStrategy(historic_data_points, benchmark_ticker, benchmark_constituents, no_of_rand_portfolios)
-	strat.run_simulation()
-	print "\n*** Simulation Finished ***"
+	run_time = strat.run_simulation()
+	print "\n*** Simulation Finished (run time: " + str(run_time) + " seconds) ***"
