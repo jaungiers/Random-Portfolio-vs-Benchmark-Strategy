@@ -20,5 +20,7 @@ To rather than just having a singular comparison at a time, my strategy allows f
 
 * The randomly generated portfolios are outputted to a comma delimited file called _rand\_portfolios.csv_ which lists the Yahoo Finance tickers of the constituents of each portfolio.
 
+* Matplotlib line graph styling is done via the _mpl\_graph\_line.py_ class and uses the Tableau20 colours for a more appealing visual.
+
 ## Example Output
-![Example Matplotlib Output](https://raw.githubusercontent.com/jaungiers/Random-Portfolio-vs-Benchmark-Strategy/master/example_run_graph_output.png)
+![Example Matplotlib Output](https://raw.githubusercontent.com/jaungiers/Random-Portfolio-vs-Benchmark-Strategy/master/graph_output.png)

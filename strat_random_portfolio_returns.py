@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 from random import randint
 import matplotlib.pyplot as plt
+from mpl_graph_line import mpl_graph_line
 
 class RandomPortfolioReturnStrategy(object):
 
@@ -85,26 +86,25 @@ class RandomPortfolioReturnStrategy(object):
 
 	def plot_results(self, benchmark, rand_portfolios):
 		print "\n>> Plotting results..."
-		fig = plt.figure()
-		fig.canvas.set_window_title('Performance of ' + str(self.n_rand_port) + ' Random Portfolios vs ' + self.bmark_ticker + ' Benchmark')
-		plt.ylabel('% Change')
 		now = datetime.date.today()
-		plt.xlabel('N Days (ending on ' + str(now.day) + '/' + str(now.month) + '/' + str(now.year) + ')')
-		plt.plot(benchmark, linewidth=3)
+		window_title = ('Performance of ' + str(self.n_rand_port) + ' Random Portfolios vs ' + self.bmark_ticker + ' Benchmark')
+		xlab = 'N Days (ending on ' + str(now.day) + '/' + str(now.month) + '/' + str(now.year) + ')'
+		ylab = '% Change'
+		line_plot = mpl_graph_line(window_title, xlab, ylab, True)
 
+		plot_data = [(benchmark, 2)] #Tuple: ([prices], linewidth)
 		for portfolio in rand_portfolios:
-			plt.plot(portfolio)
+			plot_data.append((portfolio, 1))
 		
 		legend = ['Benchmark (' + self.bmark_ticker + ')']
 		for i in xrange(len(rand_portfolios)):
 			legend.append('Rand Portfolio (' + str(i+1) + ')')
 
-		plt.legend(legend, loc='upper left', prop={'size':'10'})
-		plt.show()
+		line_plot.plot(plot_data, legend)
 
 	def run_simulation(self):
-		t_start = time.time()
 		print "\n>> Running simulation calculations..."
+		t_start = time.time()
 		benchmark = self.fetch_prices(self.bmark_ticker)[:self.lim]
 		rand_portfolios = []
 		done_total = self.n_rand_port * self.constituents
@@ -140,7 +140,7 @@ class RandomPortfolioReturnStrategy(object):
 		return t_delta
 
 if __name__ == '__main__':
-	historic_data_points = 360
+	historic_data_points = 720
 	benchmark_ticker = '^FTSE'
 	benchmark_constituents = 100
 	no_of_rand_portfolios = 20
@@ -154,4 +154,4 @@ if __name__ == '__main__':
 
 	strat = RandomPortfolioReturnStrategy(historic_data_points, benchmark_ticker, benchmark_constituents, no_of_rand_portfolios)
 	run_time = strat.run_simulation()
-	print "\n*** Simulation Finished (run time: " + str(run_time) + " seconds) ***"
+	print "\n*** Simulation Finished (run time: %.2f" % run_time + " seconds) ***"
