@@ -1,3 +1,4 @@
+import os
 import sys
 import csv
 import time
@@ -17,7 +18,11 @@ class RandomPortfolioReturnStrategy(object):
 		self.constituents = constituents
 		self.n_rand_port = n_rand_port
 		self.stocklist = self.load_stocklist()
-		self.f_portfolios = 'rand_portfolios.csv'
+
+		self.dir_output = 'output'
+		if not os.path.exists(self.dir_output):
+			os.makedirs(self.dir_output)
+		self.f_portfolios = 'portfolios.csv'
 
 	def load_stocklist(self):
 		with open('data/lse_main_stocklist.csv', 'rb') as f_stocklist:
@@ -132,26 +137,9 @@ class RandomPortfolioReturnStrategy(object):
 			rand_portfolios.append(portfolio_performance)
 
 		print "\n\n>> Finished simulating random portfolios!"
-		np.savetxt(self.f_portfolios, portfolio_stock_names, delimiter=',', fmt='%s')
+		np.savetxt((self.dir_output + '/' + self.f_portfolios), portfolio_stock_names, delimiter=',', fmt='%s')
 		print ">> Random portfolios constituents saved in:\n", self.f_portfolios
 		t_end = time.time()
 		t_delta = t_end - t_start
 		self.plot_results(benchmark, rand_portfolios)
 		return t_delta
-
-if __name__ == '__main__':
-	historic_data_points = 720
-	benchmark_ticker = '^FTSE'
-	benchmark_constituents = 100
-	no_of_rand_portfolios = 20
-
-	print "\n*** Random Portfolio vs Benchmark Returns Strategy ***\n"
-	print ">> Starting with following paramaters:"
-	print "Historical days:\t\t", historic_data_points
-	print "Benchmark ticker:\t\t", benchmark_ticker
-	print "Constituent count:\t\t", benchmark_constituents
-	print "No. of portfolios to generate:\t", no_of_rand_portfolios
-
-	strat = RandomPortfolioReturnStrategy(historic_data_points, benchmark_ticker, benchmark_constituents, no_of_rand_portfolios)
-	run_time = strat.run_simulation()
-	print "\n*** Simulation Finished (run time: %.2f" % run_time + " seconds) ***"

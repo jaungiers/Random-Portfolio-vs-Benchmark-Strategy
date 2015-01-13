@@ -23,4 +23,4 @@ To rather than just having a singular comparison at a time, my strategy allows f
 * Matplotlib line graph styling is done via the _mpl\_graph\_line.py_ class and uses the Tableau20 colours for a more appealing visual.
 
 ## Example Output
-![Example Matplotlib Output](https://raw.githubusercontent.com/jaungiers/Random-Portfolio-vs-Benchmark-Strategy/master/graph_output.png)
+![Example Matplotlib Output](https://raw.githubusercontent.com/jaungiers/Random-Portfolio-vs-Benchmark-Strategy/master/output/graph_output.png)
