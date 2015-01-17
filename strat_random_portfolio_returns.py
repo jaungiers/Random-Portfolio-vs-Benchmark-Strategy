@@ -8,27 +8,22 @@ import numpy as np
 from random import randint
 import matplotlib.pyplot as plt
 from mpl_graph_line import mpl_graph_line
+from stocklist_parser import StocklistParser
 
 class RandomPortfolioReturnStrategy(object):
 
-	def __init__(self, lim, bmark_ticker, constituents, n_rand_port):
+	def __init__(self, lim, bmark_ticker, constituents, n_rand_port, filter_co):
 		self.lim = lim
 		self.start_date = self.calculate_start_date(lim)
 		self.bmark_ticker = bmark_ticker
 		self.constituents = constituents
 		self.n_rand_port = n_rand_port
-		self.stocklist = self.load_stocklist()
+		self.stocklist = StocklistParser('data/yahoo_full_stocklist.csv', filter_co)
 
 		self.dir_output = 'output'
 		if not os.path.exists(self.dir_output):
 			os.makedirs(self.dir_output)
 		self.f_portfolios = 'portfolios.csv'
-
-	def load_stocklist(self):
-		with open('data/lse_main_stocklist.csv', 'rb') as f_stocklist:
-			reader = csv.reader(f_stocklist)
-			stocklist = list(reader)
-		return stocklist
 
 	def calculate_start_date(self, data_point_days):
 		weekends = (data_point_days / 7) * 2
@@ -37,8 +32,9 @@ class RandomPortfolioReturnStrategy(object):
 		return start_date
 
 	def get_rand_stock(self):
-		rand_index = randint(0, (len(self.stocklist)-1))
-		return self.stocklist[rand_index]
+		tickers = self.stocklist.get_symbols()
+		rand_index = randint(0, (len(tickers)-1))
+		return (tickers[rand_index], rand_index)
 
 	def fetch_prices(self, ticker):
 		today = datetime.date.today()
@@ -46,24 +42,25 @@ class RandomPortfolioReturnStrategy(object):
 		params = '&a=' + str(self.start_date.month-1) + '&b=' + str(self.start_date.day) + '&c=' + str(self.start_date.year) + '&d=' + str(today.month-1) + '&e=' + str(today.day) + '&f=' + str(today.year) + '&g=d&ignore=.csv'
 		try:
 			data = urllib2.urlopen(priceApi + ticker + params).read()
-			data = data.replace('\r', '').split('\n')[1:][::-1]
+			data = data.replace('\r', '').split('\n')[1:-1][::-1]
 		except:
 			return self.fetch_prices(self.get_rand_stock()[0])
 
-		if len(data) < self.lim:
-			while len(data) < self.lim:
+		'''Check data has enough historical data points and first historic price is not 0 [division by zero error]'''
+		if ((len(data)-1) < self.lim) or (float(data[0].split(',')[6]) == 0):
+			while ((len(data)-1) < self.lim) or (float(data[0].split(',')[6]) == 0):
 				next_rand_ticker = self.get_rand_stock()[0]
 				try:
 					data = urllib2.urlopen(priceApi + next_rand_ticker + params).read()
-					data = data.replace('\r', '').split('\n')[1:][::-1]
+					data = data.replace('\r', '').split('\n')[1:-1][::-1]
 				except:
 					return self.fetch_prices(self.get_rand_stock()[0])
 
 		prices = []
 		for d in data:
-			if d:
-				prices.append(float(d.split(',')[6]))
+			prices.append(float(d.split(',')[6]))
 		prices_pct = self.convert_pct(prices)
+		
 		return prices_pct
 
 	def convert_pct(self, prices):
@@ -97,13 +94,15 @@ class RandomPortfolioReturnStrategy(object):
 		ylab = '% Change'
 		line_plot = mpl_graph_line(window_title, xlab, ylab, True)
 
-		plot_data = [(benchmark, 2)] #Tuple: ([prices], linewidth)
+		plot_data = [] #Tuple: ([prices], linewidth)
 		for portfolio in rand_portfolios:
 			plot_data.append((portfolio, 1))
+		plot_data.append((benchmark, 2))
 		
-		legend = ['Benchmark (' + self.bmark_ticker + ')']
+		legend = []
 		for i in xrange(len(rand_portfolios)):
 			legend.append('Rand Portfolio (' + str(i+1) + ')')
+		legend.append('Benchmark (' + self.bmark_ticker + ')')
 
 		line_plot.plot(plot_data, legend)
 
