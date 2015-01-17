@@ -14,7 +14,7 @@ To rather than just having a singular comparison at a time, my strategy allows f
 
 ## Technical Info
 
-* The list of stocks to randomly pick from for a portfolio is contained under _./data/_ and consists of a comma delimited file in the format: _YAHOO TICKE, COMPANY NAME, INDUSTRY, COUNTRY TRADED, EXCHANGE_ with the first line being the above heading.
+* The list of stocks to randomly pick from for a portfolio is contained under _./data/_ and consists of a comma delimited file in the format: _YAHOO TICKER, COMPANY NAME, INDUSTRY, COUNTRY TRADED, EXCHANGE_ with the first line being the above heading.
 
 * The program uses the [Yahoo Finance](https://finance.yahoo.com/) historical prices download link to fetch CSV files of the historical prices of each stock. As some stocks don't have historical prices, or contain limited history, the program deals with this by iterating through the provided stocklist and trying the next random stock until it finds one that satisfies the historical requirements.
 
